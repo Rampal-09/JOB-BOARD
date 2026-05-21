@@ -31,3 +31,85 @@ const sendOTP = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+export const veryfyOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({ error: "Email and OTP are required" });
+    }
+
+    const { data, error } = await supabase.auth.verifyOtp({
+      email,
+      otp,
+      type: "email",
+    });
+
+    if (error) {
+      return res.status(401).json({ error: "Invalid or expired OTP" });
+    }
+
+    const supabaseUser = data.user;
+    const role = supabaseUser.user_metadata.role ?? "seeker";
+    const { data: exsistingUser } = await supabase
+      .from("users")
+      .select("*")
+      .eq("email", email)
+      .single();
+
+    if (!exsistingUser) {
+      const { data: newUser, error: insertError } = await supabase
+        .from("users")
+        .insert({ email, role })
+        .select().single();
+
+    }
+
+    if(insertError){
+        throw insertError
+    }
+    existingUser = newUser
+    const jwtToken = jwt.sign(
+        {
+            id : existingUser.id,
+            email : existingUser.email,
+            role : existingUser.role    ,
+        },
+          process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+        )
+          res.json({
+      token: jwtToken,
+      user: {
+        id:    existingUser.id,
+        email: existingUser.email,
+        role:  existingUser.role,
+        name:  existingUser.name
+      }
+    })
+
+  } catch (err) {
+    console.error("Error verifying OTP:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
++
