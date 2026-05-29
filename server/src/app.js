@@ -11,7 +11,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 import authRouter from "../routes/authRouter.js";
+import Jobrouter from "../routes/jobRouter.js";
 
 app.use("/api/v1/auth", authRouter);
+app.use("api/v1/jobs", Jobrouter);
 
 export default app;
