@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { sendOtp, verifyOtp } from "../api/auth";
+import { useAuth } from "../context/Authcontext";
 
 const Login = () => {
+  const { login } = useAuth();
   const [step, setStep] = useState("email");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("seeker");
@@ -9,7 +12,10 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const navigate = useNavigate();
+
   const handleSendOtp = async () => {
+    console.log("send otp btn click");
     if (!email) {
       return setError("Enter your email");
       setLoading(false);
@@ -25,14 +31,15 @@ const Login = () => {
     }
   };
 
-  const handleSendOtp = async () => {
+  const handleVerifyOtp = async () => {
+    console.log("verify btn click");
     if (!otp) return setError("Enter the OTP from your email");
     setLoading(false);
     setError("");
     try {
       const data = await verifyOtp(email, otp);
-      Login(data.token, data.user);
-      Navigate(data.user.role === "recruiter" ? "/recruiter" : "/dashboards");
+      login(data.token, data.user);
+      navigate(data.user.role === "recruiter" ? "/recruiter" : "/dashboards");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -41,7 +48,7 @@ const Login = () => {
   };
 
   return (
-    <div style={styles.pages}>
+    <div style={styles.page}>
       <div style={styles.card}>
         <h2 style={styles.title}>
           {step === "email" ? "Sign in to Job Board" : "Enter your OTP"}
@@ -65,7 +72,11 @@ const Login = () => {
                   {r === "seeker" ? "job Seeker" : "Recruiter"}
                 </button>
               ))}
-              <button style={styles.btn} disabled={loading}>
+              <button
+                style={styles.btn}
+                disabled={loading}
+                onClick={handleSendOtp}
+              >
                 {loading ? "Sending..." : "Send OTP"}
               </button>
             </div>
@@ -79,9 +90,13 @@ const Login = () => {
               placeholder="6-digit code"
               maxLength={6}
               value={otp}
-              onChange={() => setOtp(e.target.value)}
+              onChange={(e) => setOtp(e.target.value)}
             />
-            <button style={styles.btn} disabled={loading}>
+            <button
+              style={styles.btn}
+              disabled={loading}
+              onClick={handleVerifyOtp}
+            >
               {loading ? "Verifying..." : "Verify & Login"}
             </button>
             <button style={styles.back} onClick={() => setStep("email")}>

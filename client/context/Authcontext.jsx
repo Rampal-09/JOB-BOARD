@@ -34,9 +34,9 @@ export const AuthProvider = ({ children }) => {
 
   if (loading) return <div style={{ padding: "2rem" }}>Loading...</div>;
   return (
-    <AuthContext.Provider
-      value={{ loading, login, logout, user }}
-    ></AuthContext.Provider>
+    <AuthContext.Provider value={{ loading, login, logout, user }}>
+      {children}
+    </AuthContext.Provider>
   );
 };
 

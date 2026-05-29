@@ -11,11 +11,10 @@ api.interceptors.request.use((config) => {
 });
 
 export const sendOtp = (email, role) => {
+  console.log("send otp request come to api helper function(sendotp");
   api.post("/auth/send-otp", { email, role }).then((r) => r.data);
 };
 
-export const verifyOtp = (email, token) => {
-  api.post("/auth/verify-otp", { email, otp }).then((r) => r.data);
-};
-
+export const verifyOtp = (email, token) =>
+  api.post("/auth/verify-otp", { email, token }).then((r) => r.data);
 export const getMe = () => api.get("/auth/me").then((r) => r.data);
