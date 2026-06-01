@@ -1,20 +1,20 @@
 import { useState } from "react";
 
-const ApplyModal = () => {
+const ApplyModal = ({ job, onClose, onSuccess }) => {
   const [file, setFile] = useState(null);
   const [coverNote, setCoverNote] = useState("");
-  const [loading, setloading] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleSubmit = async ({ jobId, onClose }) => {
+  const handleSubmit = async () => {
     if (!file) return setError("Please attach your resume");
 
     const formData = new FormData();
 
     formData.append("resume", file);
     formData.append("coverNote", coverNote);
-    formData.append("jobId", jobId);
-    setloading(true);
+    formData.append("jobId", job.id);
+    setLoading(true);
     setError(null);
 
     try {
@@ -27,7 +27,8 @@ const ApplyModal = () => {
 
       if (!res.ok) throw new Error("Upload failed");
 
-      onClose(); // success — close modal
+      onSuccess?.();
+      onClose?.();
     } catch (err) {
       setError(err.message);
     } finally {

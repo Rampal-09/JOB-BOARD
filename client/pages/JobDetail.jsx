@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/Authcontext";
 import { fetchJobById } from "../api/job";
-import { ApplyModal } from "../components/ApplyModal.jsx";
+import ApplyModal from "../components/ApplyModal.jsx";
 
 const JobDetail = () => {
   const [job, setJob] = useState(null);
