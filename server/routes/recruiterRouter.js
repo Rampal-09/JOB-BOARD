@@ -1,5 +1,11 @@
 import express from "express";
 const recruiterRoute = express.Router();
+import {
+  getMyJobs,
+  getApplicants,
+  updateStatus,
+  getResumeUrl,
+} from "../controllers/recruiterController.js";
 
 router.use(authenticate, requireRole("recruiter"));
 
