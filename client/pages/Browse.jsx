@@ -5,8 +5,12 @@ import {
   initialState,
 } from "../reducers/filterReducer.js";
 
-import { fetchJobs } from "../api/jobs";
-import { JobCard } from "../components/JobCard";
+import { fetchJobs } from "../api/job.js";
+import JobCard from "../components/JobCard.jsx";
+import { useAuth } from "../context/Authcontext.jsx";
+import { getSavedJobs, saveJob, unsaveJob } from "../api/job.js";
+
+const JOB_TYPES = ["full-time", "part-time", "contract", "remote"];
 
 const Browse = () => {
   const [allJobs, setAllJobs] = useState([]);
@@ -14,6 +18,10 @@ const Browse = () => {
   const [loading, setLoading] = useState(true);
 
   const [filters, dispatch] = useReducer(filterReducer, initialState);
+  const { user } = useAuth();
+
+  const [savedIds, setSavedIds] = useState(new Set());
+  const [savingIds, setSavingIds] = useState(new Set());
 
   useEffect(() => {
     fetchJobs()
@@ -25,6 +33,43 @@ const Browse = () => {
   const filteredJobs = useMemo(() => {
     return applyFilter(allJobs, filters);
   }, [allJobs, filters]);
+
+  useEffect(() => {
+    if (!user) return;
+    if (user.role !== "seeker") return;
+
+    getSavedJobs()
+      .then((data) => {
+        const ids = new Set((data.savedJobs || []).map((s) => s.job_id));
+        setSavedIds(ids);
+      })
+      .catch((err) => console.error("getSavedJobs error:", err.message));
+  }, [user]);
+
+  const handleToggleSave = async (jobId, currentlySaved) => {
+    try {
+      setSavingIds((p) => new Set(p).add(jobId));
+      if (currentlySaved) {
+        await unsaveJob(jobId);
+        setSavedIds((p) => {
+          const next = new Set(p);
+          next.delete(jobId);
+          return next;
+        });
+      } else {
+        await saveJob(jobId);
+        setSavedIds((p) => new Set(p).add(jobId));
+      }
+    } catch (err) {
+      console.error("toggleSave error:", err.message || err);
+    } finally {
+      setSavingIds((p) => {
+        const next = new Set(p);
+        next.delete(jobId);
+        return next;
+      });
+    }
+  };
 
   if (loading) return <div style={s.center}>Loading jobs...</div>;
   if (error) return <div style={s.center}>Error: {error}</div>;
@@ -86,7 +131,14 @@ const Browse = () => {
         ) : (
           <div style={s.grid}>
             {filteredJobs.map((job) => (
-              <JobCard key={job.id} job={job} />
+              <JobCard
+                key={job.id}
+                job={job}
+                canSave={user?.role === "seeker"}
+                isSaved={savedIds.has(job.id)}
+                onToggleSave={handleToggleSave}
+                saving={savingIds.has(job.id)}
+              />
             ))}
           </div>
         )}
