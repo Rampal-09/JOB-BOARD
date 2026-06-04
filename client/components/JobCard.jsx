@@ -1,8 +1,18 @@
-const JobCard = ({ job }) => {
+import { useNavigate } from "react-router-dom";
+
+const JobCard = ({
+  job,
+  canSave = false,
+  isSaved = false,
+  onToggleSave,
+  saving = false,
+}) => {
+  const navigate = useNavigate();
+
   const formatSalary = (min, max) => {
     if (!min && !max) return "Salary not disclosed";
     if (!max) return `₹${min.toLocaleString()}+`;
-    return `₹${min?.toLocaleString()} – ₹${max?.toLocaleString()}`;
+    return `₹${min?.toLocaleString()} - ₹${max?.toLocaleString()}`;
   };
 
   const timeAgo = (dateStr) => {
@@ -12,36 +22,55 @@ const JobCard = ({ job }) => {
     return `${days} days ago`;
   };
 
-  <div style={s.card}>
-    <div style={s.header}>
-      <div>
-        <h3 style={s.title}>{job.title}</h3>
-        <p style={s.company}>{job.recruiter?.name || job.recruiter?.email}</p>
-      </div>
-    </div>
-    <div style={s.meta}>
-      {job.location && <span style={s.tag}>📍 {job.location}</span>}
-      {job.type && <span style={s.tag}>{job.type}</span>}
-    </div>
-    {job.skills?.length > 0 && (
-      <div style={s.skills}>
-        {job.skills.slice(0, 4).map((skill) => (
-          <span key={skill} style={s.skill}>
-            {skill}
-          </span>
-        ))}
-        {job.skills.length > 4 && (
-          <span style={s.skill}>+{job.skills.length - 4} more</span>
+  return (
+    <div style={s.card}>
+      <div style={s.header}>
+        <div>
+          <h3 style={s.title}>{job.title}</h3>
+          <p style={s.company}>{job.recruiter?.name || job.recruiter?.email}</p>
+        </div>
+        {canSave && (
+          <button
+            type="button"
+            style={isSaved ? s.saveBtnActive : s.saveBtn}
+            onClick={() => onToggleSave?.(job.id, isSaved)}
+            disabled={saving}
+            title={isSaved ? "Unsave job" : "Save job"}
+            aria-label={isSaved ? "Unsave job" : "Save job"}
+          >
+            {isSaved ? "★" : "☆"}
+          </button>
         )}
       </div>
-    )}
-    <div style={s.footer}>
-      <span style={s.date}>{timeAgo(job.created_at)}</span>
-      <button style={s.viewBtn} onClick={() => navigate(`/jobs/${job.id}`)}>
-        View Job →
-      </button>
+
+      <div style={s.meta}>
+        {job.location && <span style={s.tag}>📍 {job.location}</span>}
+        {job.type && <span style={s.tag}>{job.type}</span>}
+      </div>
+
+      <p style={s.salary}>{formatSalary(job.min_salary, job.max_salary)}</p>
+
+      {job.skills?.length > 0 && (
+        <div style={s.skills}>
+          {job.skills.slice(0, 4).map((skill) => (
+            <span key={skill} style={s.skill}>
+              {skill}
+            </span>
+          ))}
+          {job.skills.length > 4 && (
+            <span style={s.skill}>+{job.skills.length - 4} more</span>
+          )}
+        </div>
+      )}
+
+      <div style={s.footer}>
+        <span style={s.date}>{timeAgo(job.created_at)}</span>
+        <button style={s.viewBtn} onClick={() => navigate(`/jobs/${job.id}`)}>
+          View Job →
+        </button>
+      </div>
     </div>
-  </div>;
+  );
 };
 
 export default JobCard;
@@ -61,6 +90,7 @@ const s = {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "flex-start",
+    gap: "10px",
   },
   title: {
     fontSize: "15px",
@@ -73,8 +103,19 @@ const s = {
     background: "none",
     border: "none",
     fontSize: "20px",
+    color: "#9ca3af",
+    padding: "0",
+    cursor: "pointer",
+    lineHeight: 1,
+  },
+  saveBtnActive: {
+    background: "none",
+    border: "none",
+    fontSize: "20px",
     color: "#f59e0b",
     padding: "0",
+    cursor: "pointer",
+    lineHeight: 1,
   },
   meta: { display: "flex", gap: "6px", flexWrap: "wrap" },
   tag: {
@@ -108,5 +149,6 @@ const s = {
     background: "none",
     border: "none",
     fontWeight: "500",
+    cursor: "pointer",
   },
 };
