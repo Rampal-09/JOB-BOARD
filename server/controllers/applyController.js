@@ -1,6 +1,5 @@
-import { supabase } from "./supabase.service";
-
-export const uploadToSupabase = async (buffer, originalName, userId) => {
+import { supabase } from "../services/supabase.service.js";
+const uploadToStorage = async (buffer, originalName, userId) => {
   const timestamp = Date.now();
   const safeName = originalName.replace(/[^a-zA-Z0-9._-]/g, "_");
   const filePath = `resumes/${userId}/${timestamp}-${safeName}`;
@@ -26,7 +25,7 @@ export const applyToJob = async (req, res) => {
     }
 
     const { jobId, coverNote } = req.body;
-    const id = req.user.id;
+    const userId = req.user.id;
 
     if (!jobId) {
       return res.status(400).json({ error: "jobId is required" });
@@ -39,7 +38,7 @@ export const applyToJob = async (req, res) => {
       .eq("seeker_id", userId)
       .single();
 
-    if (!existing)
+    if (existing)
       return res.status(409).json({ error: "You already applied to this job" });
 
     const resumeUrl = await uploadToStorage(
